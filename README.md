@@ -6,10 +6,10 @@ Simple Key Logger KMDF Driver.
 
 ## Author
 Adrianna Piekarska
-Based on Microsoft's [kbfiltr](https://github.com/Microsoft/Windows-driver-samples/tree/master/input/kbfiltr)
+Based on Microsoft's [kbfiltr](https://github.com/Microsoft/Windows-driver-samples/tree/master/input/kbfiltr) driver.
 
 ## Installation
-For installation guide, see instructions on the [kbfiltr's page](https://github.com/Microsoft/Windows-driver-samples/tree/master/input/kbfiltr)
+For installation guide, see instructions on the [kbfiltr's page](https://github.com/Microsoft/Windows-driver-samples/tree/master/input/kbfiltr).
 
 ## Description
 Driver that hooks itself between the KbdClass driver and i8042prt driver and intercepts keystrokes.
